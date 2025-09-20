@@ -1,0 +1,591 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة المعدل لطلبة الطب</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3e8ff; /* Light purple */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #6A1B9A; /* Deep purple */
+            margin-bottom: 20px;
+        }
+        .controls, .results {
+            margin-bottom: 20px;
+        }
+        .controls select, .controls button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #f9f5ff; /* Lighter shade */
+        }
+        .controls button {
+            background-color: #6A1B9A;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button:hover {
+            background-color: #4A148C; /* Darker purple on hover */
+        }
+        .course-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .course-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f5fd; /* Very light purple */
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .course-item label {
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        .course-item select {
+            width: 120px;
+        }
+        .results p {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            color: #6A1B9A;
+            line-height: 1.6;
+        }
+        .notes-toggle-button {
+            background-color: #9C27B0;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease;
+        }
+        .notes-toggle-button:hover {
+            background-color: #7B1FA2;
+        }
+        .notes {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0f4ff;
+            border-radius: 10px;
+            border: 1px solid #cce0ff;
+            display: none; /* Initially hidden */
+        }
+        .notes h3 {
+            color: #6A1B9A;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .notes h4 {
+            margin-bottom: 5px;
+        }
+        .notes p, .notes ul {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #555;
+            text-align: justify;
+            margin-top: 5px;
+        }
+        .notes ul {
+            padding-right: 20px;
+        }
+        .notes ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>حاسبة المعدل لطلبة الطب</h1>
+    <h2>الجامعة الأردنية</h2>
+
+    <div class="controls">
+        <label for="year-select">اختر السنة:</label>
+        <select id="year-select">
+            <option value="">اختر سنة...</option>
+            <option value="الأولى">الأولى</option>
+            <option value="الثانية">الثانية</option>
+            <option value="الثالثة">الثالثة</option>
+            <option value="الرابعة">الرابعة</option>
+            <option value="الخامسة">الخامسة</option>
+            <option value="السادسة">السادسة</option>
+        </select>
+
+        <label for="semester-select" id="semester-label" style="display:none;">اختر الفصل:</label>
+        <select id="semester-select" style="display:none;">
+            <option value="">اختر فصلاً...</option>
+        </select>
+    </div>
+
+    <div id="courses-container" class="course-list"></div>
+
+    <div class="controls">
+        <button id="calculate-semester-gpa-btn">حساب المعدل الفصلي</button>
+        <button id="calculate-annual-gpa-btn">حساب المعدل السنوي</button>
+        <button id="calculate-cumulative-gpa-btn">حساب المعدل التراكمي</button>
+        <button id="calculate-graduation-gpa-btn">حساب معدل التخرج</button>
+    </div>
+
+    <div class="results">
+        <p id="gpa-output"></p>
+    </div>
+
+    <button id="notes-toggle-btn" class="notes-toggle-button">إظهار الملاحظات</button>
+
+    <div class="notes" id="notes-content">
+        <h3>ملاحظات هامة حول حساب المعدل</h3>
+        <p>
+            تتبع هذه الحاسبة نظام حساب المعدل المعتمد في كلية الطب بالجامعة الأردنية، مع توضيح مفصل للمواد التي تدخل في كل نوع من أنواع المعدلات.
+        </p>
+        
+        <h4>1. أنواع المعدلات</h4>
+        <ul>
+            <li><strong>المعدل الفصلي:</strong> يتم حسابه بناءً على علامات جميع المواد التي أدخلتها في **الفصل الذي قمت باختياره فقط**.</li>
+            <li><strong>المعدل السنوي:</strong></li>
+            <ul>
+                <li><strong>للسنة الأولى:</strong> يتم احتساب جميع مواد السنة الأولى الأساسية بالإضافة إلى جميع متطلبات الجامعة من كل السنوات (لأن جميع المتطلبات والتي مجموعها 27 ساعة تحسب من معدل السنة الأولى).</li>
+                <li><strong>للسنوات من الثانية إلى السادسة:</strong> يتم احتساب علامات مواد التخصص لتلك السنة فقط، **بدون** متطلبات الجامعة.</li>
+            </ul>
+            <li><strong>المعدل التراكمي:</strong> يتم فيه حساب جميع المواد التي أدخلت علاماتها في حتى اللحظة من جميع الفصول أو السنوات.</li>
+            <li><strong>معدل التخرج:</strong> هو المعدل النهائي المعتمد عند التخرج. يتم حسابه بناءً على الأوزان المئوية لكل سنة، حيث يتم إعطاء **السنة الأولى وزن 15%**، وباقي السنوات **وزن 17% لكل منها**.</li>
+        </ul>
+
+        <h4>2. ملاحظة حول العلامات</h4>
+        <ul>
+            <li>في حساب المعدل، تُعتبر العلامتان **F** و **D-** علامات رسوب.</li>
+        </ul>
+        
+        <h4>3. ملاحظة حول حفظ البيانات</h4>
+        <ul>
+            <li>يتم **حفظ علاماتك تلقائياً** في متصفحك. لن تحتاج إلى إعادة إدخالها عند العودة إلى الصفحة. لا يتم تخزين بياناتك على أي خادم، مما يضمن أن تكون محفوظة **بشكل خاص على جهازك فقط**.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Study plan for the Faculty of Medicine at the University of Jordan
+const studyPlan = {
+    'الأولى': {
+        'أول': {'العلوم الحياتية العامة 1': 3, 'الكيمياء العامة 1': 3, 'الفيزياء العامة لطلبة الطب': 3, 'المهارات الحاسوبية للكليات الطبية': 3, 'مبادئ الإحصاء': 3, 'متطلب جامعة 1': 3},
+        'ثاني': {'مقدمة في التشريح وعلم الأجنة': 3, 'علم الأنسجة العام': 2, 'مقدمة في الفسيولوجيا': 2, 'الكيمياء العضوية لغير طلبة الكيمياء': 3, 'متطلب جامعة 2': 3, 'متطلب جامعة 3': 3},
+        'صيفي': {'مقدمة في الكيمياء الحيوية والبيولوجيا الجزيئية': 3, 'متطلب جامعة 4': 3, 'متطلب جامعة 5': 3, 'متطلب جامعة 6': 3}
+    },
+    'الثانية': {
+        'أول': {'الاستقلاب': 3, 'مقدمة في علم الأحياء الدقيقة': 3, 'علم الخلية والبيولوجيا الجزيئية': 3, 'مقدمة في علم الأدوية': 2, 'مقدمة في علم الأمراض': 2, 'طب المجتمع': 4},
+        'ثاني': {'الجهاز الحركي والجلد': 6, 'الجهاز الهضمي': 6, 'الصحة العالمية': 3, 'متطلب جامعة 7': 3},
+        'صيفي': {'الغدد الصم': 3, 'علم النفس الاجتماعي والأخلاقيات الطبية': 2, 'متطلب جامعة 8': 3, 'متطلب جامعة 9': 3}
+    },
+    'الثالثة': {
+        'أول': {'الجهاز القلبي الوعائي': 5, 'الجهاز التنفسي': 4, 'الجهاز اللمفاوي والدم': 4, 'البحث العلمي الطبي': 2, 'علم المناعة الطبي': 2},
+        'ثاني': {'الجهاز العصبي المركزي وعلم السلوك': 8, 'الجهاز البولي والتناسلي': 6, 'علم الجينات الطبي': 2, 'البحث العلمي الطبي 2': 2}
+    },
+    'الرابعة': {
+        'مجموع': {'مقدمة في الطب السريري': 8, 'باطنية 1': 12, 'جراحة عامة 1': 12, 'علوم عصبية سريرية': 4, 'التخدير والعناية الحثيثة': 4}
+    },
+    'الخامسة': {
+        'مجموع': {'طب أطفال 1': 4, 'أمراض نسائية وتوليد 1': 8, 'أمراض نفسية': 4, 'جراحة خاصة': 12, 'عظام ومفاصل ومرض العيون، مسالك بولية، أنف وأذن وحنجرة، جراحة أعصاب': 12, 'تخصصات طبية مختارة (جلدية، طوارئ وإسعاف، طب شرعي وسموم، أشعة، طب أسرة)': 12, 'المداواة': 3, 'مشروع تخرج 1': 1, 'اقتصاد وسياسات صحية': 3}
+    },
+    'السادسة': {
+        'مجموع': {'تدريب سريري في موضوع اختياري': 8, 'باطنية 2': 8, 'جراحة عامة 2': 8, 'أطفال 2': 8, 'أمراض نسائية وتوليد 2': 8, 'مشروع تخرج 2': 2}
+    }
+};
+
+// Grading scale mapping GPA points
+const gradingScale = {
+    'A': 4.0, 'A-': 3.75, 'B+': 3.5, 'B': 3.0, 'B-': 2.75,
+    'C+': 2.5, 'C': 2.0, 'C-': 1.75, 'D+': 1.5, 'D': 1.0,
+    'D-': 0.75, 'F': 0.0
+};
+
+let studentGrades = {}; // Loaded from localStorage
+
+const yearSelect = document.getElementById('year-select');
+const semesterSelect = document.getElementById('semester-select');
+const semesterLabel = document.getElementById('semester-label');
+const coursesContainer = document.getElementById('courses-container');
+const gpaOutput = document.getElementById('gpa-output');
+const calcSemesterBtn = document.getElementById('calculate-semester-gpa-btn');
+const calcAnnualBtn = document.getElementById('calculate-annual-gpa-btn');
+const calcCumulativeBtn = document.getElementById('calculate-cumulative-gpa-btn');
+const calcGraduationBtn = document.getElementById('calculate-graduation-gpa-btn');
+
+const notesToggleBtn = document.getElementById('notes-toggle-btn');
+const notesContent = document.getElementById('notes-content');
+
+// Function to save grades to localStorage
+function saveGrades() {
+    localStorage.setItem('studentGrades', JSON.stringify(studentGrades));
+}
+
+// Function to load grades from localStorage
+function loadGrades() {
+    const savedGrades = localStorage.getItem('studentGrades');
+    if (savedGrades) {
+        studentGrades = JSON.parse(savedGrades);
+    }
+}
+
+// Function to get the grade equivalent
+function getGradeEquivalent(gpa) {
+    if (gpa >= 3.65) {
+        return 'ممتاز';
+    } else if (gpa >= 3.00) {
+        return 'جيد جداً';
+    } else if (gpa >= 2.50) {
+        return 'جيد';
+    } else if (gpa >= 2.00) {
+        return 'مقبول';
+    } else {
+        return 'ضعيف';
+    }
+}
+
+// Function to populate the semester and course lists
+function populateSemestersAndCourses() {
+    const selectedYear = yearSelect.value;
+    semesterSelect.innerHTML = '<option value="">اختر فصلاً...</option>';
+    coursesContainer.innerHTML = '';
+    
+    if (selectedYear) {
+        if (['الرابعة', 'الخامسة', 'السادسة'].includes(selectedYear)) {
+            semesterLabel.style.display = 'none';
+            semesterSelect.style.display = 'none';
+            populateCourses('مجموع');
+        } else {
+            semesterLabel.style.display = 'block';
+            semesterSelect.style.display = 'block';
+            const semesters = studyPlan[selectedYear];
+            for (const semester in semesters) {
+                const option = document.createElement('option');
+                option.value = semester;
+                option.textContent = `الفصل ${semester}`;
+                semesterSelect.appendChild(option);
+            }
+        }
+    } else {
+        semesterLabel.style.display = 'none';
+        semesterSelect.style.display = 'none';
+    }
+}
+
+function populateCourses() {
+    const selectedYear = yearSelect.value;
+    const selectedSemester = semesterSelect.value;
+    
+    const isCombinedSemester = ['الرابعة', 'الخامسة', 'السادسة'].includes(selectedYear);
+    const semesterKey = isCombinedSemester ? 'مجموع' : selectedSemester;
+    
+    coursesContainer.innerHTML = '';
+    gpaOutput.textContent = '';
+
+    if (selectedYear && semesterKey) {
+        const courses = studyPlan[selectedYear][semesterKey];
+        if (!studentGrades[selectedYear]) studentGrades[selectedYear] = {};
+        if (!studentGrades[selectedYear][semesterKey]) studentGrades[selectedYear][semesterKey] = {};
+
+        for (const courseName in courses) {
+            const creditHours = courses[courseName];
+            const courseDiv = document.createElement('div');
+            courseDiv.className = 'course-item';
+
+            const courseLabel = document.createElement('label');
+            courseLabel.textContent = `${courseName} (${creditHours} ساعة)`;
+            courseDiv.appendChild(courseLabel);
+
+            const gradeSelect = document.createElement('select');
+            gradeSelect.setAttribute('data-course', courseName);
+            gradeSelect.setAttribute('data-credits', creditHours);
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'اختر علامة...';
+            gradeSelect.appendChild(defaultOption);
+
+            for (const grade in gradingScale) {
+                const option = document.createElement('option');
+                option.value = grade;
+                option.textContent = grade;
+                gradeSelect.appendChild(option);
+            }
+
+            const savedGrade = studentGrades[selectedYear][semesterKey][courseName];
+            if (savedGrade) {
+                gradeSelect.value = savedGrade;
+            }
+
+            gradeSelect.addEventListener('change', () => {
+                studentGrades[selectedYear][semesterKey][courseName] = gradeSelect.value;
+                saveGrades(); // Save grades after each change
+            });
+            
+            courseDiv.appendChild(gradeSelect);
+            coursesContainer.appendChild(courseDiv);
+        }
+    }
+}
+
+function calculateAndDisplayGPA(totalPoints, totalCredits, label) {
+    const exactGPA = totalCredits > 0 ? totalPoints / totalCredits : 0;
+    const roundedGPA = exactGPA.toFixed(2);
+    const gradeEquivalent = getGradeEquivalent(parseFloat(roundedGPA));
+    
+    gpaOutput.innerHTML = `
+        <p><strong>المعدل ${label} قبل التقريب:</strong> ${exactGPA.toFixed(4)}</p>
+        <p><strong>المعدل ${label} بعد التقريب:</strong> ${roundedGPA}</p>
+        <p><strong>التقدير:</strong> ${gradeEquivalent}</p>
+    `;
+}
+
+function findCreditHours(courseName) {
+    for (const year in studyPlan) {
+        for (const semester in studyPlan[year]) {
+            if (studyPlan[year][semester][courseName] !== undefined) {
+                return studyPlan[year][semester][courseName];
+            }
+        }
+    }
+    return null;
+}
+
+function calculateSemesterGPA() {
+    const selectedYear = yearSelect.value;
+    const selectedSemester = semesterSelect.value;
+
+    if (!selectedYear) {
+        gpaOutput.textContent = 'يرجى اختيار السنة.';
+        return;
+    }
+
+    const isCombinedSemester = ['الرابعة', 'الخامسة', 'السادسة'].includes(selectedYear);
+    const semesterKey = isCombinedSemester ? 'مجموع' : selectedSemester;
+
+    if (!isCombinedSemester && !semesterKey) {
+        gpaOutput.textContent = 'يرجى اختيار الفصل.';
+        return;
+    }
+    
+    const semesterGrades = studentGrades[selectedYear]?.[semesterKey] || {};
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    for (const courseName in semesterGrades) {
+        const grade = semesterGrades[courseName];
+        const creditHours = findCreditHours(courseName);
+        if (grade && gradingScale[grade] !== undefined && creditHours !== null) {
+            totalPoints += gradingScale[grade] * creditHours;
+            totalCredits += creditHours;
+        }
+    }
+
+    calculateAndDisplayGPA(totalPoints, totalCredits, 'الفصلي');
+}
+
+function calculateAnnualGPA() {
+    const selectedYear = yearSelect.value;
+
+    if (!selectedYear) {
+        gpaOutput.textContent = 'يرجى اختيار السنة.';
+        return;
+    }
+
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    if (selectedYear === 'الأولى') {
+        // For the first year, include all university requirements from all years
+        for (const year in studyPlan) {
+            for (const semester in studyPlan[year]) {
+                const courses = studyPlan[year][semester];
+                const enteredGrades = studentGrades[year]?.[semester] || {};
+                for (const courseName in courses) {
+                    const creditHours = courses[courseName];
+                    const isUniversityReq = courseName.startsWith('متطلب جامعة');
+                    
+                    let grade = enteredGrades[courseName];
+                    if (!grade || gradingScale[grade] === undefined) {
+                        grade = 'A';
+                    }
+
+                    if (isUniversityReq || year === 'الأولى') {
+                        totalPoints += gradingScale[grade] * creditHours;
+                        totalCredits += creditHours;
+                    }
+                }
+            }
+        }
+    } else {
+        // For other years, only include non-university requirements
+        const semesters = studyPlan[selectedYear];
+        for (const semester in semesters) {
+            const semesterCourses = semesters[semester];
+            const enteredGrades = studentGrades[selectedYear]?.[semester] || {};
+            for (const courseName in semesterCourses) {
+                const creditHours = semesterCourses[courseName];
+                const isUniversityReq = courseName.startsWith('متطلب جامعة');
+                
+                if (isUniversityReq) {
+                    continue; // Skip university requirements
+                }
+                
+                let grade = enteredGrades[courseName];
+                if (!grade || gradingScale[grade] === undefined) {
+                    grade = 'A';
+                }
+                
+                totalPoints += gradingScale[grade] * creditHours;
+                totalCredits += creditHours;
+            }
+        }
+    }
+
+    calculateAndDisplayGPA(totalPoints, totalCredits, 'السنوي');
+}
+
+function calculateCumulativeGPA() {
+    let totalPoints = 0;
+    let totalCredits = 0;
+    
+    for (const year in studentGrades) {
+        for (const semester in studentGrades[year]) {
+            const enteredGrades = studentGrades[year][semester];
+            for (const courseName in enteredGrades) {
+                const grade = enteredGrades[courseName];
+                const creditHours = findCreditHours(courseName);
+
+                if (grade && gradingScale[grade] !== undefined && creditHours !== null) {
+                    totalPoints += gradingScale[grade] * creditHours;
+                    totalCredits += creditHours;
+                }
+            }
+        }
+    }
+    
+    if (totalCredits === 0) {
+        gpaOutput.textContent = 'يرجى إدخال علامات بعض المواد لحساب المعدل التراكمي.';
+    } else {
+        calculateAndDisplayGPA(totalPoints, totalCredits, 'التراكمي');
+    }
+}
+
+function calculateGraduationGPA() {
+    const annualGpas = {
+        'الأولى': { points: 0, credits: 0 },
+        'الثانية': { points: 0, credits: 0 },
+        'الثالثة': { points: 0, credits: 0 },
+        'الرابعة': { points: 0, credits: 0 },
+        'الخامسة': { points: 0, credits: 0 },
+        'السادسة': { points: 0, credits: 0 }
+    };
+
+    // Calculate points and credits for each year
+    for (const year in studyPlan) {
+        const yearData = annualGpas[year];
+        
+        for (const semester in studyPlan[year]) {
+            const courses = studyPlan[year][semester];
+            const enteredGrades = studentGrades[year]?.[semester] || {};
+            
+            for (const courseName in courses) {
+                const creditHours = courses[courseName];
+                const isUniversityReq = courseName.startsWith('متطلب جامعة');
+                
+                let grade = enteredGrades[courseName];
+                if (!grade || gradingScale[grade] === undefined) {
+                    grade = 'A';
+                }
+
+                if (isUniversityReq) {
+                    // All university requirements go to the first year
+                    annualGpas['الأولى'].points += gradingScale[grade] * creditHours;
+                    annualGpas['الأولى'].credits += creditHours;
+                } else {
+                    // Other courses go to their respective years
+                    yearData.points += gradingScale[grade] * creditHours;
+                    yearData.credits += creditHours;
+                }
+            }
+        }
+    }
+
+    let weightedPoints = 0;
+    const yearWeights = {
+        'الأولى': 0.15,
+        'الثانية': 0.17,
+        'الثالثة': 0.17,
+        'الرابعة': 0.17,
+        'الخامسة': 0.17,
+        'السادسة': 0.17
+    };
+
+    // Calculate final weighted GPA
+    for (const year in annualGpas) {
+        const yearData = annualGpas[year];
+        const yearGPA = yearData.credits > 0 ? yearData.points / yearData.credits : 0;
+        weightedPoints += yearGPA * yearWeights[year];
+    }
+    
+    calculateAndDisplayGPA(weightedPoints, 1, 'التخرج');
+}
+
+// Event Listeners
+yearSelect.addEventListener('change', () => {
+    populateSemestersAndCourses();
+    // For years 4-6, populate courses immediately after year selection
+    if (['الرابعة', 'الخامسة', 'السادسة'].includes(yearSelect.value)) {
+        populateCourses();
+    }
+});
+semesterSelect.addEventListener('change', populateCourses);
+calcSemesterBtn.addEventListener('click', calculateSemesterGPA);
+calcAnnualBtn.addEventListener('click', calculateAnnualGPA);
+calcCumulativeBtn.addEventListener('click', calculateCumulativeGPA);
+calcGraduationBtn.addEventListener('click', calculateGraduationGPA);
+
+notesToggleBtn.addEventListener('click', () => {
+    if (notesContent.style.display === 'none' || notesContent.style.display === '') {
+        notesContent.style.display = 'block';
+        notesToggleBtn.textContent = 'إخفاء الملاحظات';
+    } else {
+        notesContent.style.display = 'none';
+        notesToggleBtn.textContent = 'إظهار الملاحظات';
+    }
+});
+
+// Load grades when the page loads
+window.onload = loadGrades;
+
+</script>
+
+</body>
+</html>
+
